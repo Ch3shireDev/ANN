@@ -1,5 +1,6 @@
 import numpy as np
 import pickle as p
+from plot import plot
 
 def sigmoid(x):
     return 1/(1+np.exp(-x))
@@ -44,49 +45,12 @@ def forward(X):
     x2 = sigmoid(x2)
     return x2
 
-print(error(Y, forward(X)))
-
-
-# save progress
+err = error(Y, forward(X))
+err = "%0.03f" % (err,)
+print(err)
 
 f = open(fname, 'wb')
 p.dump((W1, W2), f)
 f.close()
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.cm as cm
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-
-#Test network for various combinations of sleep/study:
-hoursSleep = np.linspace(0, 10, 100)
-hoursStudy = np.linspace(0, 5, 100)
-
-#Normalize data (same way training data way normalized)
-hoursSleepNorm = hoursSleep/10.
-hoursStudyNorm = hoursStudy/5.
-
-#Create 2-d versions of input for plotting
-a, b  = np.meshgrid(hoursSleepNorm, hoursStudyNorm)
-
-#Join into a single input matrix:
-allInputs = np.zeros((a.size, 2))
-allInputs[:, 0] = a.ravel()
-allInputs[:, 1] = b.ravel()
-
-allOutputs = forward(allInputs)
-
-yy = np.dot(hoursStudy.reshape(100,1), np.ones((1,100)))
-xx = np.dot(hoursSleep.reshape(100,1), np.ones((1,100))).T
-
-ax.scatter(10*X[:,0], 5*X[:,1], 100*y, c='k', alpha = 1, s=30)
-
-surf = ax.plot_surface(xx, yy, 100*allOutputs.reshape(100, 100), \
-                       cmap=cm.jet, alpha = 0.5)
-
-
-ax.set_xlabel('Hours Sleep')
-ax.set_ylabel('Hours Study')
-ax.set_zlabel('Test Score')
+plot(forward, X, Y, err)
