@@ -1,3 +1,7 @@
 # Artificial Neural Networks
 
-Sandbox for my small project.
+My small sandbox for learning about ANNs.
+
+![](./fig1.png)
+
+(from ann_example.py)
