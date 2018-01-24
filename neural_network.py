@@ -5,7 +5,8 @@ from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 from numpy.random import randn
 
-class Network:
+class network:
+    
     def __init__(self, N=[1,3,1], bias=None, filename = "unnamed"):
         if(len(N)<2):
             print("Wrong size of N. len(N) should be greater than 1.")
@@ -18,7 +19,6 @@ class Network:
         if type(bias) is list:
             for i in range(len(bias)):
                 self.Bias[i] = bias[i]
-
         self.fname = filename + ('-'.join([str(s) for s in N]))
         print(self.Bias, np.any(self.Bias))
         if np.any(self.Bias):
@@ -26,14 +26,12 @@ class Network:
             for b in self.Bias:
                 self.fname += '1' if b else '0'
         self.fname += ".dat"
-
         print(self.fname)
 
     def load_random(self):
         N = self.N
         self.W = [randn(N[i-1]+(1 if self.Bias[i-1] else 0), N[i]) for i in range(1,len(N))]
 
-        
     def save(self):
         f = open(self.fname, 'wb')
         p.dump(self.W, f)
@@ -48,9 +46,6 @@ class Network:
             print("Generating file", self.fname)
             self.load_random()
 
-    def sigmoid(self, x):
-        return 1/(1+np.exp(-x))
-
     def forward(self, x):
         x = np.array(x)
         if len(x.shape)==1:
@@ -61,7 +56,7 @@ class Network:
                 y = np.array([[1] for _ in x])
                 x = np.concatenate([y, np.array(x)], axis=1)
             x = np.dot(x, W)
-            x = self.sigmoid(x)
+            x = sigmoid(x)
         return x
 
     def cost(self, x, y):
@@ -88,3 +83,12 @@ class Network:
                     wmin, wmax = w - dw, w + dw
                 self.W[k][l][m] = w
         return c
+
+    def training(self, x, y):
+        pass
+
+def sigmoid(z):
+    return 1/(1+np.exp(-z))
+
+def sigmoidPrime(z):
+    return np.exp(-z)/((1+np.exp(-z))**2)
