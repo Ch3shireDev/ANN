@@ -1,7 +1,7 @@
 import numpy as np
 from random import randint
 
-N = 500
+N = 2
 
 
 x = [randint(0,300) for i in range(N)]
@@ -25,7 +25,7 @@ n = 16
 
 print(f(x))
 
-for j in range(30):
+for j in range(1):
     for i in range(N):
         xmin, xmax = -10000, 10000
         for k in range(10):
@@ -36,3 +36,5 @@ for j in range(30):
             x[i] = x[i][index]
             xmin, xmax = x[i]-dx, x[i]+dx
     print(j, f(x))
+
+

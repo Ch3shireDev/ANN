@@ -84,8 +84,28 @@ class network:
                 self.W[k][l][m] = w
         return c
 
-    def training(self, x, y):
+    def gradient_training(self, x, y, Wmin=-100, Wmax=100, n=8):
         pass
+        # for k in range(len(self.W)):
+        #     a, b = self.W[k].shape
+        #     for l, m in product(range(a), range(b)):
+        #         w = self.W[k][l][m]
+        #         wmin = Wmin
+        #         wmax = Wmax
+        #         for i in range(10):
+        #             W = np.linspace(wmin, wmax, n+1)
+        #             C = []
+        #             for w in W:
+        #                 self.W[k][l][m] = w
+        #                 cost = sum(self.cost(x,y))
+        #                 C += [cost]
+        #             index = np.argmin(C)
+        #             w = W[index]
+        #             c = C[index]
+        #             dw = (wmax - wmin)/n
+        #             wmin, wmax = w - dw, w + dw
+        #         self.W[k][l][m] = w
+        # return c
 
 def sigmoid(z):
     return 1/(1+np.exp(-z))
