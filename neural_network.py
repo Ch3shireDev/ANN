@@ -30,7 +30,7 @@ class network:
 
     def load_random(self):
         N = self.N
-        self.W = [randn(N[i-1]+(1 if self.Bias[i-1] else 0), N[i]) for i in range(1,len(N))]
+        self.W = np.array([randn(N[i-1]+(1 if self.Bias[i-1] else 0), N[i]) for i in range(1,len(N))])
 
     def save(self):
         f = open(self.fname, 'wb')
@@ -46,21 +46,23 @@ class network:
             print("Generating file", self.fname)
             self.load_random()
 
-    def forward(self, x):
+    def forward(self, x, W=None):
         x = np.array(x)
+        if W is None:
+            W = self.W
         if len(x.shape)==1:
             x = np.array([[xx for xx in x]])
-        for i in range(len(self.W)):
-            W = self.W[i]
+        for i in range(len(W)):
+            WW = W[i]
             if self.Bias[i]==True:
                 y = np.array([[1] for _ in x])
                 x = np.concatenate([y, np.array(x)], axis=1)
-            x = np.dot(x, W)
+            x = np.dot(x, WW)
             x = sigmoid(x)
         return x
 
-    def cost(self, x, y):
-        return np.sum((self.forward(x)-y)**2/2, axis=1)
+    def cost(self, x, y, W=None):
+        return np.sum((self.forward(x, W)-y)**2/2, axis=1)
 
     def retarded_training(self, x, y, Wmin=-10, Wmax=10, n=8):
         for k in range(len(self.W)):
@@ -86,26 +88,6 @@ class network:
 
     def gradient_training(self, x, y, Wmin=-100, Wmax=100, n=8):
         pass
-        # for k in range(len(self.W)):
-        #     a, b = self.W[k].shape
-        #     for l, m in product(range(a), range(b)):
-        #         w = self.W[k][l][m]
-        #         wmin = Wmin
-        #         wmax = Wmax
-        #         for i in range(10):
-        #             W = np.linspace(wmin, wmax, n+1)
-        #             C = []
-        #             for w in W:
-        #                 self.W[k][l][m] = w
-        #                 cost = sum(self.cost(x,y))
-        #                 C += [cost]
-        #             index = np.argmin(C)
-        #             w = W[index]
-        #             c = C[index]
-        #             dw = (wmax - wmin)/n
-        #             wmin, wmax = w - dw, w + dw
-        #         self.W[k][l][m] = w
-        # return c
 
 def sigmoid(z):
     return 1/(1+np.exp(-z))
