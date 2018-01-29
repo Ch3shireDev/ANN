@@ -4,6 +4,7 @@ from itertools import product
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 from numpy.random import randn
+from copy import deepcopy
 
 class network:
     
@@ -86,8 +87,59 @@ class network:
                 self.W[k][l][m] = w
         return c
 
-    def gradient_training(self, x, y, Wmin=-100, Wmax=100, n=8):
-        pass
+    def gradient_training(self, x, y, Wmin=-10, Wmax=10, n=8, dw=0.0001):
+        Wzero = self.W.copy()
+
+        for i in range(len(Wzero)):
+            Wzero[i] = np.zeros_like(Wzero[i])
+
+        indices = []
+        
+        W = self.W
+        
+        for k in range(len(Wzero)):
+            a, b = Wzero[k].shape
+            for l, m in product(range(a), range(b)):
+                indices += [(k,l,m)]
+        
+        y0 = sum(self.cost(x,y,W))
+        dW = np.array([w.copy() for w in Wzero])
+
+        #from backpropagation algorithm
+        # yHat = self.forward(X)
+        # delta3 = np.multiply(-(y-yHat), sigmoidPrime(z3))
+        # dJdW2 = np.dot(a2.T, delta3)
+        # delta2 = np.dot(delta3, W2.T)*sigmoidPrime(z2)
+        # dJdW1 = np.dot(X.T, delta2)  
+
+        for k, l, m in indices:
+            Wzero[k][l][m] = dw
+            y1 = sum(self.cost(x,y,W+Wzero))
+            dW[k][l][m] = (y1-y0)
+            Wzero[k][l][m] = 0
+
+        dW2 = deepcopy(Wzero)
+
+        for i in range(len(dW)):
+            w = np.linalg.norm(dW[i])
+            if w>1e-15:
+                dW[i]/=w
+            wmin = Wmin
+            wmax = Wmax
+            for _ in range(10):
+                Ws = np.linspace(wmin, wmax, n+1)
+                C = []
+                for w in Ws:
+                    dW2[i] = dW[i]*w
+                    costs = self.cost(x,y,self.W+dW2)
+                    C += [sum(costs)]
+                index = np.argmin(C)
+                w = Ws[index]
+                c = C[index]
+                dw = (wmax - wmin)/n
+                wmin, wmax = w - dw, w + dw
+        W += dW2
+        return c
 
 def sigmoid(z):
     return 1/(1+np.exp(-z))
