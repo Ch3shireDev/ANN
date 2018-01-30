@@ -3,7 +3,7 @@ import pickle as p
 from itertools import product
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
-from numpy.random import randn
+from numpy.random import randn, randint
 from copy import deepcopy
 
 class network:
@@ -15,6 +15,8 @@ class network:
         self.N = N
         self.fname = None
         self.Bias = [False for _ in range(1, len(N))]
+        self.Wzero = None
+        self.indices = None
         if bias == True:
             self.Bias = [True for _ in range(1, len(N))]
         if type(bias) is list:
@@ -66,6 +68,10 @@ class network:
         return np.sum((self.forward(x, W)-y)**2/2, axis=1)
 
     def retarded_training(self, x, y, Wmin=-10, Wmax=10, n=8):
+        
+        Wcopy = deepcopy(self.W)
+        c_begin = sum(self.cost(x,y))
+
         for k in range(len(self.W)):
             a, b = self.W[k].shape
             for l, m in product(range(a), range(b)):
@@ -85,24 +91,40 @@ class network:
                     dw = (wmax - wmin)/n
                     wmin, wmax = w - dw, w + dw
                 self.W[k][l][m] = w
+
+        if c > c_begin:
+            self.W = Wcopy
         return c
 
+    ### kills one synapse. It's weird but it helps
+
+    def shake(self):
+        a = self.W.size
+        a = randint(0,a)
+        b, c = self.W[a].shape
+        b = randint(0, b)
+        c = randint(0, c)
+
+        self.W[a][b][c]=randn()
+
     def gradient_training(self, x, y, Wmin=-10, Wmax=10, n=8, dw=0.0001):
-        Wzero = self.W.copy()
-
-        for i in range(len(Wzero)):
-            Wzero[i] = np.zeros_like(Wzero[i])
-
-        indices = []
         
-        W = self.W
+        if self.Wzero is None:
+            self.Wzero = np.array([np.zeros_like(w) for w in self.W])
         
-        for k in range(len(Wzero)):
-            a, b = Wzero[k].shape
+        if self.indices is None:
+            indices = []
+            for k in range(len(self.W)):
+                a, b = self.W[k].shape
             for l, m in product(range(a), range(b)):
                 indices += [(k,l,m)]
+            self.indices = indices
+
+        indices = self.indices
+        Wzero = self.Wzero
+        W = self.W
         
-        y0 = sum(self.cost(x,y,W))
+        y0 = sum(self.cost(x,y))
         dW = np.array([w.copy() for w in Wzero])
 
         #from backpropagation algorithm
