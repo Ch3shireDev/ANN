@@ -55,13 +55,17 @@ class network:
             W = self.W
         if len(x.shape)==1:
             x = np.array([[xx for xx in x]])
+        self.z = []
+        self.a = []
         for i in range(len(W)):
             WW = W[i]
             if self.Bias[i]==True:
                 y = np.array([[1] for _ in x])
                 x = np.concatenate([y, np.array(x)], axis=1)
             x = np.dot(x, WW)
+            self.z += [x]
             x = sigmoid(x)
+            self.a += [x]
         return x
 
     def cost(self, x, y, W=None):
@@ -96,16 +100,32 @@ class network:
             self.W = Wcopy
         return c
 
-    ### kills one synapse. It's weird but it helps
+    ### kills one synapse. It's weird but helps
 
-    def shake(self):
-        a = self.W.size
+    def shake_internal(self):    
+        a = len(self.W)
         a = randint(0,a)
         b, c = self.W[a].shape
         b = randint(0, b)
         c = randint(0, c)
-
         self.W[a][b][c]=randn()
+
+    def shake(self,x,y):
+        W = deepcopy(self.W)
+        c0 = sum(self.cost(x,y))
+
+        for i in range(5):
+            self.shake_internal()
+            for j in range(20):
+                self.retarded_training(x,y)
+            c1 = sum(self.cost(x,y))
+            if c1<c0:
+                print("Success!")
+                break
+            else:
+                self.W = deepcopy(W)
+                print(i, "fail")
+
 
     def gradient_training(self, x, y, Wmin=-10, Wmax=10, n=8, dw=0.0001):
         
@@ -134,11 +154,20 @@ class network:
         # delta2 = np.dot(delta3, W2.T)*sigmoidPrime(z2)
         # dJdW1 = np.dot(X.T, delta2)  
 
+        yHat = self.forward(x)
+        
+        delta = np.multiply(yHat - y, sigmoidPrime(self.z[-1]))
+        dJdW  = np.dot(self.a[-2].T, delta)
+
         for k, l, m in indices:
+            
             Wzero[k][l][m] = dw
             y1 = sum(self.cost(x,y,W+Wzero))
-            dW[k][l][m] = (y1-y0)
-            Wzero[k][l][m] = 0
+            dW[k][l][m] = (y1-y0)/dw
+            Wzero[k][l][m] = 0                 
+
+
+        
 
         dW2 = deepcopy(Wzero)
 
