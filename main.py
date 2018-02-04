@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from numpy.random import randn
 from neural_network import network
 
-net = network([1,3,3,3,1], filename='./data/x')
+net = network([1,8,8,1], filename='./data/x', bias=True)
 # net.load_random()
 net.load()
 
@@ -23,11 +23,14 @@ c = 1
 ii = 0
 
 for ii in range(1001):
+    # c = net.gradient_training(x,y,dw=0.1)
     c = net.retarded_training(x,y)
     print(ii,c)
-    if ii%100==0:
-        net.shake(x,y)
-        net.save()
+    net.save()
+    # if ii%10==0 and ii!=0:
+    #     net.shake(x,y,n=10)
+    #     net.save()
+    # # ii+=1
 
 N = 128
 
@@ -37,7 +40,7 @@ X = np.linspace(0,1,N)
 Y = []
 
 for x in X:
-    Y += [net.forward(x)[0]]
+    Y += [net.forward([x])[0]]
 
 plt.plot(X,np.array(Y))
 plt.show()

@@ -13,36 +13,56 @@ class network:
             print("Wrong size of N. len(N) should be greater than 1.")
             exit()
         self.N = N
+        N = len(N)
         self.fname = None
-        self.Bias = [False for _ in range(1, len(N))]
+        self.Bias = [False for _ in range(1, N)]
         self.Wzero = None
         self.indices = None
         if bias == True:
-            self.Bias = [True for _ in range(1, len(N))]
+            self.Bias = [True for _ in range(1, N)]
         if type(bias) is list:
             for i in range(len(bias)):
                 self.Bias[i] = bias[i]
-        self.fname = filename + ('-'.join([str(s) for s in N]))
-        print(self.Bias, np.any(self.Bias))
-        if np.any(self.Bias):
-            self.fname += "-B"
-            for b in self.Bias:
-                self.fname += '1' if b else '0'
-        self.fname += ".dat"
-        print(self.fname)
+        self.filename = filename
+
+        self.load_random()
+
+    def expand(self, n):
+        # self.N[n] += 1
+        N = self.N
+
+        Wa = self.W[n]
+        Wb = self.W[n+1]
+
+        na, nb = N[n-1]+(1 if self.Bias[n-1] else 0), N[n]
+        # nc, nd = N[n]+(1 if self.Bias[n] else 0), N[n+1]
+
+        self.W[n] = np.array([[Wa[j][i] for i in range(na)] for j in range(nb)])
+        # self.W[n+1] = np.array([[Wb[i][j] for i in range(nd)] for j in range(nc)])
+
 
     def load_random(self):
         N = self.N
         self.W = np.array([randn(N[i-1]+(1 if self.Bias[i-1] else 0), N[i]) for i in range(1,len(N))])
 
-    def save(self):
-        f = open(self.fname, 'wb')
+    def getFilename(self):
+        fname = self.filename + ('-'.join([str(s) for s in self.N]))
+        if np.any(self.Bias):
+            fname += "-B"
+            for b in self.Bias:
+                fname += '1' if b else '0'
+        fname += ".dat"
+        return fname
+
+    def save(self):        
+        f = open(self.getFilename(), 'wb')
         p.dump(self.W, f)
         f.close()
 
     def load(self):
+        fname = self.getFilename()
         try:
-            f = open(self.fname, 'rb')
+            f = open(fname, 'rb')
             self.W = p.load(f)
             f.close()
         except:
@@ -110,13 +130,13 @@ class network:
         c = randint(0, c)
         self.W[a][b][c]=randn()
 
-    def shake(self,x,y):
+    def shake(self,x,y,n=20,m=5):
         W = deepcopy(self.W)
         c0 = sum(self.cost(x,y))
 
-        for i in range(5):
+        for i in range(m):
             self.shake_internal()
-            for j in range(20):
+            for j in range(n):
                 self.retarded_training(x,y)
             c1 = sum(self.cost(x,y))
             if c1<c0:
@@ -124,7 +144,7 @@ class network:
                 break
             else:
                 self.W = deepcopy(W)
-                print(i, "fail")
+                print(i, "Failure")
 
 
     def gradient_training(self, x, y, Wmin=-10, Wmax=10, n=8, dw=0.0001):
@@ -160,14 +180,10 @@ class network:
         dJdW  = np.dot(self.a[-2].T, delta)
 
         for k, l, m in indices:
-            
             Wzero[k][l][m] = dw
             y1 = sum(self.cost(x,y,W+Wzero))
             dW[k][l][m] = (y1-y0)/dw
             Wzero[k][l][m] = 0                 
-
-
-        
 
         dW2 = deepcopy(Wzero)
 
