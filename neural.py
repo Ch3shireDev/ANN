@@ -30,17 +30,31 @@ class network:
     def expand(self, n, Wmin=-10):
         self.N[n] += 1
         if n+1 < len(self.N):
-            Wa = self.W[n-1]
-            Wb = self.W[n]
-            self.W[n-1] = np.pad(Wa, ((0,0),(0,1)), mode='constant', constant_values=Wmin)
-            self.W[n] = np.pad(Wb, ((0,1),(0,0)), mode='constant', constant_values=Wmin)
-        else:
-            pass
+            if n>0:
+                Wa = self.W[n-1]
+                print(Wa.shape)
+                
+                print(Wa)
+                Wa = np.pad(Wa,((0,0),(0,1)), mode='constant', constant_values=Wmin)
+                print(Wa.shape)
+                print(Wa)
 
+                self.W[n-1] = Wa
+
+            Wb = self.W[n]
+            Wb = np.pad(Wb, ((0,1),(0,0)), mode='constant', constant_values=Wmin)
+
+            self.W[n] = Wb
+        else:
+            Wb = self.W[-1]
+            self.W[-1] = np.pad(Wb, ((0,0),(0,1)), mode='constant', constant_values=Wmin)
+
+    def addLayer(self, n):
+        pass
 
     def load_random(self):
         N = self.N
-        self.W = np.array([randn(N[i-1]+(1 if self.Bias[i-1] else 0), N[i]) for i in range(1,len(N))])
+        self.W = [randn(N[i-1]+(1 if self.Bias[i-1] else 0), N[i]) for i in range(1,len(N))]
 
     def getFilename(self):
         fname = self.filename + ('-'.join([str(s) for s in self.N]))
@@ -74,6 +88,7 @@ class network:
             x = np.array([[xx for xx in x]])
         self.z = []
         self.a = []
+
         for i in range(len(W)):
             WW = W[i]
             if self.Bias[i]==True:

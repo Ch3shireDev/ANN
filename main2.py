@@ -5,22 +5,23 @@ import matplotlib.pyplot as plt
 from numpy.random import randn
 from neural import network
 
-nx = 2
-ny = 2
+net = network([1,3,1], filename='./data/aaa', bias=True)
+net.load()
 
-net = network([nx,8,6,ny], filename='./data/aaa', bias=True)
+x = np.array([[x] for x in np.linspace(0,1,16)])
+y = (np.sin(2*np.pi*x)+1)/2
 
-print(net.getFilename())
+# net.expand(1)
 
-x = randn(nx)
-y0 = net.forward(x)[0]
+for i in range(1000):
+    c = net.retarded_training(x,y)
+    print(i,c,net.N)
 
-net.expand(3)
+net.save()
 
-y1 = net.forward(x)[0]
+X = [[x] for x in np.linspace(0,1,1024)]
+Y = net.forward(X)
 
-dy = sum(y1-y0)
-
-print(dy)
-
-print(net.getFilename())
+plt.plot(X,Y)
+plt.plot(x,y, 'ro')
+plt.show()
