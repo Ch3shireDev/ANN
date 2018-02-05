@@ -27,18 +27,15 @@ class network:
 
         self.load_random()
 
-    def expand(self, n):
-        # self.N[n] += 1
-        N = self.N
-
-        Wa = self.W[n]
-        Wb = self.W[n+1]
-
-        na, nb = N[n-1]+(1 if self.Bias[n-1] else 0), N[n]
-        # nc, nd = N[n]+(1 if self.Bias[n] else 0), N[n+1]
-
-        self.W[n] = np.array([[Wa[j][i] for i in range(na)] for j in range(nb)])
-        # self.W[n+1] = np.array([[Wb[i][j] for i in range(nd)] for j in range(nc)])
+    def expand(self, n, Wmin=-10):
+        self.N[n] += 1
+        if n+1 < len(self.N):
+            Wa = self.W[n-1]
+            Wb = self.W[n]
+            self.W[n-1] = np.pad(Wa, ((0,0),(0,1)), mode='constant', constant_values=Wmin)
+            self.W[n] = np.pad(Wb, ((0,1),(0,0)), mode='constant', constant_values=Wmin)
+        else:
+            pass
 
 
     def load_random(self):
